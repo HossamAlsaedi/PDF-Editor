@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ModernPDF - PDF Editor Tool</title>
+    <link rel="stylesheet" href="index.css">
+    <!-- Include pdf-lib for PDF manipulation -->
+    <script src="/libraries/pdf-lib.min.js"></script>
+    <!-- Include pdf.js for PDF rendering -->
+    <script type="module" src="/libraries/pdf.min.mjs"></script>
+    <script type="module" src="/libraries/pdf.worker.min.mjs"></script>
+    <!-- Preconnect to improve performance -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <div class="language-selector">
+            <button class="lang-btn" data-lang="en">English</button>
+            <button class="lang-btn" data-lang="ar">العربية</button>
+        </div>
+        
+        <h1 data-lang-key="editor-title">PDF Editor</h1>
+        
+        <div class="tabs">
+            <button class="tab-button active" data-tab="merge" data-lang-key="merge-tab">Merge PDFs</button>
+            <button class="tab-button" data-tab="separate" data-lang-key="separate-tab">Split PDF</button>
+            <button class="tab-button" data-tab="rearrange" data-lang-key="rearrange-tab">Rearrange Pages</button>
+        </div>
+        
+        <!-- Merge PDFs Section -->
+        <div class="tab-content active" id="merge">
+            <h2 data-lang-key="merge-title">Merge PDFs</h2>
+            <div class="upload-area">
+                <input type="file" id="merge-file-input" accept="application/pdf" multiple>
+                <label for="merge-file-input" class="file-input-label" data-lang-key="merge-select">Select PDFs to Merge</label>
+                <p data-lang-key="merge-drag">Or drag and drop PDF files here</p>
+            </div>
+            <div id="merge-file-list" class="file-list"></div>
+            <button id="merge-button" class="action-button" disabled data-lang-key="merge-button">Merge PDFs</button>
+        </div>
+        
+        <!-- Separate PDF Section -->
+        <div class="tab-content" id="separate">
+            <h2 data-lang-key="split-title">Split PDF</h2>
+            <div class="upload-area">
+                <input type="file" id="separate-file-input" accept="application/pdf">
+                <label for="separate-file-input" class="file-input-label" data-lang-key="split-select">Select PDF to Split</label>
+                <p data-lang-key="split-drag">Or drag and drop a PDF file here</p>
+            </div>
+            <div id="separate-file-info" class="file-info"></div>
+            <div class="split-options">
+                <div class="input-group">
+                    <label for="split-method" data-lang-key="split-method">Split Method:</label>
+                    <select id="split-method">
+                        <option value="all" data-lang-key="split-all">Extract All Pages</option>
+                        <option value="range" data-lang-key="split-range">Extract Page Range</option>
+                    </select>
+                </div>
+                <div id="range-inputs" class="input-group hidden">
+                    <label for="page-range" data-lang-key="page-range">Page Range:</label>
+                    <input type="text" id="page-range" placeholder="e.g., 1-3, 5, 7-9" data-lang-key-placeholder="page-range-placeholder">
+                </div>
+            </div>
+            <button id="separate-button" class="action-button" disabled data-lang-key="split-button">Split PDF</button>
+        </div>
+        
+        <!-- Rearrange Pages Section -->
+        <div class="tab-content" id="rearrange">
+            <h2 data-lang-key="rearrange-title">Rearrange Pages</h2>
+            <div class="upload-area">
+                <input type="file" id="rearrange-file-input" accept="application/pdf">
+                <label for="rearrange-file-input" class="file-input-label" data-lang-key="rearrange-select">Select PDF to Rearrange</label>
+                <p data-lang-key="rearrange-drag">Or drag and drop a PDF file here</p>
+            </div>
+            <div id="page-preview-container">
+                <div id="page-previews" class="page-list"></div>
+            </div>
+            <div class="action-buttons">
+                <button id="rearrange-button" class="action-button" disabled data-lang-key="rearrange-button">Save Rearranged PDF</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Load script.js after the pdf libraries are loaded -->
+    <script src="index.js"></script>
+</body>
+</html>
