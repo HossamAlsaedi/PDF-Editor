@@ -6,6 +6,8 @@ document.addEventListener('DOMContentLoaded', function() {
             'merge-tab': 'Merge PDFs',
             'separate-tab': 'Split PDF',
             'rearrange-tab': 'Rearrange Pages',
+            'images-tab': 'Images to PDF',
+            'nup-tab': 'N-Up Pages',
             'merge-title': 'Merge PDFs',
             'merge-select': 'Select PDFs to Merge',
             'merge-drag': 'Or drag and drop PDF files here',
@@ -34,13 +36,43 @@ document.addEventListener('DOMContentLoaded', function() {
             'loading-previews': 'Loading previews...',
             'select-pdf': 'Please select a PDF file.',
             'valid-range': 'Please enter a valid page range.',
-            'no-valid-range': 'No valid page ranges found.'
+            'no-valid-range': 'No valid page ranges found.',
+            'images-title': 'Images to PDF',
+            'images-select': 'Select Images',
+            'images-drag': 'Or drag and drop image files here',
+            'images-button': 'Create PDF',
+            'page-size': 'Page Size:',
+            'size-a4': 'A4',
+            'size-letter': 'Letter',
+            'size-fit': 'Fit to Image',
+            'page-orientation': 'Orientation:',
+            'orientation-portrait': 'Portrait',
+            'orientation-landscape': 'Landscape',
+            'orientation-auto': 'Auto (Based on Image)',
+            'error-image-conversion': 'Error converting images to PDF. Please try again.',
+            'no-images': 'No images selected',
+            'loading-images': 'Loading images...',
+            'image-text': 'Image',
+            'nup-title': 'N-Up Pages',
+            'nup-select': 'Select PDF',
+            'nup-drag': 'Or drag and drop a PDF file here',
+            'nup-layout': 'Layout:',
+            'nup-2x1': '2-Up Horizontal (2×1)',
+            'nup-1x2': '2-Up Vertical (1×2)',
+            'nup-2x2': '4-Up (2×2)',
+            'nup-direction': 'Page Order:',
+            'nup-ltr': 'Left to Right',
+            'nup-rtl': 'Right to Left',
+            'nup-button': 'Create N-Up PDF',
+            'error-nup': 'Error creating N-Up PDF. Please try again.'
         },
         'ar': {
             'editor-title': 'محرر PDF',
             'merge-tab': 'دمج ملفات PDF',
             'separate-tab': 'تقسيم PDF',
             'rearrange-tab': 'إعادة ترتيب الصفحات',
+            'images-tab': 'صور إلى PDF',
+            'nup-tab': 'دمج الصفحات',
             'merge-title': 'دمج ملفات PDF',
             'merge-select': 'حدد ملفات PDF للدمج',
             'merge-drag': 'أو اسحب وأفلت ملفات PDF هنا',
@@ -69,7 +101,35 @@ document.addEventListener('DOMContentLoaded', function() {
             'loading-previews': 'جار تحميل المعاينات...',
             'select-pdf': 'يرجى تحديد ملف PDF.',
             'valid-range': 'يرجى إدخال نطاق صفحات صالح.',
-            'no-valid-range': 'لم يتم العثور على نطاقات صفحات صالحة.'
+            'no-valid-range': 'لم يتم العثور على نطاقات صفحات صالحة.',
+            'images-title': 'تحويل الصور إلى PDF',
+            'images-select': 'اختر الصور',
+            'images-drag': 'أو اسحب وأفلت ملفات الصور هنا',
+            'images-button': 'إنشاء PDF',
+            'page-size': 'حجم الصفحة:',
+            'size-a4': 'A4',
+            'size-letter': 'Letter',
+            'size-fit': 'ملائم للصورة',
+            'page-orientation': 'الاتجاه:',
+            'orientation-portrait': 'عمودي',
+            'orientation-landscape': 'أفقي',
+            'orientation-auto': 'تلقائي (حسب الصورة)',
+            'error-image-conversion': 'خطأ في تحويل الصور إلى PDF. يرجى المحاولة مرة أخرى.',
+            'no-images': 'لم يتم تحديد صور',
+            'loading-images': 'جاري تحميل الصور...',
+            'image-text': 'صورة',
+            'nup-title': 'دمج الصفحات',
+            'nup-select': 'اختر ملف PDF',
+            'nup-drag': 'أو اسحب وأفلت ملف PDF هنا',
+            'nup-layout': 'التخطيط:',
+            'nup-2x1': '2- أفقي (2×1)',
+            'nup-1x2': '2- عمودي (1×2)',
+            'nup-2x2': '4- (2×2)',
+            'nup-direction': 'ترتيب الصفحات:',
+            'nup-ltr': 'من اليسار إلى اليمين',
+            'nup-rtl': 'من اليمين إلى اليسار',
+            'nup-button': 'إنشاء PDF مدمج',
+            'error-nup': 'خطأ في إنشاء PDF مدمج. يرجى المحاولة مرة أخرى.'
         }
     };
 
@@ -112,15 +172,14 @@ document.addEventListener('DOMContentLoaded', function() {
         });
         
         // Update select options
-        const splitMethodSelect = document.getElementById('split-method');
-        if (splitMethodSelect) {
-            Array.from(splitMethodSelect.options).forEach(option => {
+        document.querySelectorAll('select').forEach(select => {
+            Array.from(select.options).forEach(option => {
                 const key = option.getAttribute('data-lang-key');
                 if (key && translations[lang][key]) {
                     option.textContent = translations[lang][key];
                 }
             });
-        }
+        });
         
         // Update no files message if present
         const noFilesElements = document.querySelectorAll('.no-files');
@@ -150,6 +209,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 ${getTranslatedText('total-pages')}: ${pdfPageCount}
             `;
         }
+        
+        const nupFileInfo = document.getElementById('nup-file-info');
+        if (nupFileInfo && nupFileInfo.querySelector('strong') && pdfForNup) {
+            const filename = nupFileInfo.querySelector('strong').textContent;
+            nupFileInfo.innerHTML = `
+                <strong>${filename}</strong><br>
+                ${getTranslatedText('total-pages')}: ${nupPageCount}
+            `;
+        }
     }
 
     // Add RTL support for Arabic
@@ -174,7 +242,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
         
-        // Adjust button icons if any (assuming font-awesome or similar)
+        // Adjust button icons if any
         const buttonIcons = document.querySelectorAll('button i');
         buttonIcons.forEach(icon => {
             if (icon.classList.contains('fa-arrow-right') || icon.classList.contains('fa-arrow-left')) {
@@ -295,6 +363,17 @@ document.addEventListener('DOMContentLoaded', function() {
             
             pageItem.appendChild(canvas);
             pageItem.appendChild(pageNumberEl);
+            
+            // Add checkbox for page selection if needed
+            if (options.selectable) {
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.className = 'page-select';
+                checkbox.checked = true; // Default selected
+                checkbox.dataset.pageIndex = pageNumber - 1;
+                pageItem.appendChild(checkbox);
+            }
+            
             container.appendChild(pageItem);
             
             // If in rearrange mode, make draggable
@@ -309,7 +388,10 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // Add click listener for preview modal
-            pageItem.addEventListener('click', async () => {
+            pageItem.addEventListener('click', async (e) => {
+                // Don't open modal if clicking on checkbox
+                if (e.target.type === 'checkbox') return;
+                
                 modalBody.innerHTML = '';
                 modal.classList.add('active');
                 
@@ -337,178 +419,228 @@ document.addEventListener('DOMContentLoaded', function() {
         return numPages;
     }
 
-    // ====== MERGE PDFs FUNCTIONALITY ======
-    const mergeFileInput = document.getElementById('merge-file-input');
-    const mergeFileList = document.getElementById('merge-file-list');
-    const mergeButton = document.getElementById('merge-button');
-    
-    let filesToMerge = [];
+// ====== MERGE PDFs FUNCTIONALITY ======
+const mergeFileInput = document.getElementById('merge-file-input');
+const mergeFileList = document.getElementById('merge-file-list');
+const mergeButton = document.getElementById('merge-button');
 
-    mergeFileInput.addEventListener('change', async (e) => {
-        const selectedFiles = Array.from(e.target.files);
+let filesToMerge = [];
+
+// Handle file selection for merging
+mergeFileInput.addEventListener('change', async (e) => {
+    const newFiles = Array.from(e.target.files);
+    if (newFiles.length === 0) return;
+    
+    // Add new files to our array
+    filesToMerge = [...filesToMerge, ...newFiles];
+    
+    // Update UI
+    updateMergeFileList();
+    
+    // Enable merge button if files are selected
+    if (filesToMerge.length > 0) {
+        mergeButton.disabled = false;
+    }
+});
+
+// Update the file list UI
+function updateMergeFileList() {
+    mergeFileList.innerHTML = '';
+    
+    if (filesToMerge.length === 0) {
+        const noFiles = document.createElement('div');
+        noFiles.className = 'no-files';
+        noFiles.textContent = getTranslatedText('no-files');
+        mergeFileList.appendChild(noFiles);
+        return;
+    }
+    
+    filesToMerge.forEach((file, index) => {
+        const fileItem = document.createElement('div');
+        fileItem.className = 'file-item';
         
-        // Add selected files to the array
-        for (const file of selectedFiles) {
-            if (file.type === 'application/pdf') {
-                const fileIndex = filesToMerge.length;
-                filesToMerge.push({
-                    file: file,
-                    order: fileIndex + 1
-                });
+        const fileName = document.createElement('span');
+        fileName.textContent = file.name;
+        
+        const removeButton = document.createElement('button');
+        removeButton.className = 'remove-file';
+        removeButton.innerHTML = '&times;';
+        removeButton.addEventListener('click', () => {
+            filesToMerge.splice(index, 1);
+            updateMergeFileList();
+            if (filesToMerge.length === 0) {
+                mergeButton.disabled = true;
             }
+        });
+        
+        fileItem.appendChild(fileName);
+        fileItem.appendChild(removeButton);
+        mergeFileList.appendChild(fileItem);
+    });
+}
+
+// Implement drag and drop for PDF merging
+const mergeDropArea = document.querySelector('#merge .upload-area');
+
+mergeDropArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    mergeDropArea.classList.add('drag-over');
+});
+
+mergeDropArea.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    mergeDropArea.classList.remove('drag-over');
+});
+
+mergeDropArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    mergeDropArea.classList.remove('drag-over');
+    
+    const droppedFiles = Array.from(e.dataTransfer.files).filter(file => 
+        file.type === 'application/pdf'
+    );
+    
+    if (droppedFiles.length > 0) {
+        filesToMerge = [...filesToMerge, ...droppedFiles];
+        updateMergeFileList();
+        mergeButton.disabled = false;
+    }
+});
+
+// Merge PDFs button functionality
+mergeButton.addEventListener('click', async () => {
+    if (filesToMerge.length === 0) return;
+    
+    try {
+        mergeButton.disabled = true;
+        mergeButton.textContent = getTranslatedText('processing');
+        
+        // Create a new PDF document
+        const mergedPdf = await PDFDocument.create();
+        
+        // For each file, load it and copy its pages to the new document
+        for (const file of filesToMerge) {
+            const fileArrayBuffer = await file.arrayBuffer();
+            const pdf = await PDFDocument.load(fileArrayBuffer);
+            const pages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+            
+            // Add each page to our new document
+            pages.forEach(page => {
+                mergedPdf.addPage(page);
+            });
         }
+        
+        // Save the merged PDF
+        const mergedPdfBytes = await mergedPdf.save();
+        
+        // Create a download link
+        const blob = new Blob([mergedPdfBytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'merged.pdf';
+        a.click();
+        
+        // Clean up
+        URL.revokeObjectURL(url);
+        mergeButton.textContent = getTranslatedText('merge-button');
+        mergeButton.disabled = false;
+        
+    } catch (error) {
+        console.error('Error merging PDFs:', error);
+        alert(getTranslatedText('error-merging'));
+        mergeButton.textContent = getTranslatedText('merge-button');
+        mergeButton.disabled = filesToMerge.length === 0;
+    }
+});
+
+// ====== SPLIT PDF FUNCTIONALITY ======
+const separateFileInput = document.getElementById('separate-file-input');
+const separateFileInfo = document.getElementById('separate-file-info');
+const separateButton = document.getElementById('separate-button');
+const splitMethodSelect = document.getElementById('split-method');
+const rangeInputs = document.getElementById('range-inputs');
+const pageRangeInput = document.getElementById('page-range');
+
+let pdfToSeparate = null;
+let pdfPageCount = 0;
+
+// Show/hide range inputs based on split method
+splitMethodSelect.addEventListener('change', () => {
+    if (splitMethodSelect.value === 'range') {
+        rangeInputs.classList.remove('hidden');
+    } else {
+        rangeInputs.classList.add('hidden');
+    }
+});
+
+// Handle file selection for splitting
+separateFileInput.addEventListener('change', async (e) => {
+    if (e.target.files.length === 0) return;
+    
+    try {
+        const file = e.target.files[0];
+        pdfToSeparate = file;
+        
+        // Read the PDF to get page count
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await PDFDocument.load(arrayBuffer);
+        pdfPageCount = pdf.getPageCount();
         
         // Update UI
-        updateMergeFileList();
-        mergeButton.disabled = filesToMerge.length < 2;
-    });
-
-    function updateMergeFileList() {
-        mergeFileList.innerHTML = '';
+        separateFileInfo.innerHTML = `
+            <strong>${file.name}</strong><br>
+            ${getTranslatedText('total-pages')}: ${pdfPageCount}
+        `;
         
-        if (filesToMerge.length === 0) {
-            mergeFileList.innerHTML = `<div class="no-files">${getTranslatedText('no-files')}</div>`;
-            return;
-        }
-
-        // Sort files by order
-        filesToMerge.sort((a, b) => a.order - b.order);
+        separateFileInfo.classList.remove('hidden');
+        separateButton.disabled = false;
         
-        filesToMerge.forEach((fileObj, index) => {
-            const fileItem = document.createElement('div');
-            fileItem.className = 'file-item';
-            
-            const fileName = document.createElement('div');
-            fileName.className = 'file-name';
-            fileName.textContent = fileObj.file.name;
-            
-            const fileActions = document.createElement('div');
-            fileActions.className = 'file-actions';
-            
-            // Move up button
-            if (index > 0) {
-                const moveUpBtn = document.createElement('button');
-                moveUpBtn.innerHTML = '↑';
-                moveUpBtn.title = 'Move Up';
-                moveUpBtn.addEventListener('click', () => {
-                    // Swap order with previous file
-                    const temp = filesToMerge[index].order;
-                    filesToMerge[index].order = filesToMerge[index - 1].order;
-                    filesToMerge[index - 1].order = temp;
-                    updateMergeFileList();
-                });
-                fileActions.appendChild(moveUpBtn);
-            }
-            
-            // Move down button
-            if (index < filesToMerge.length - 1) {
-                const moveDownBtn = document.createElement('button');
-                moveDownBtn.innerHTML = '↓';
-                moveDownBtn.title = 'Move Down';
-                moveDownBtn.addEventListener('click', () => {
-                    // Swap order with next file
-                    const temp = filesToMerge[index].order;
-                    filesToMerge[index].order = filesToMerge[index + 1].order;
-                    filesToMerge[index + 1].order = temp;
-                    updateMergeFileList();
-                });
-                fileActions.appendChild(moveDownBtn);
-            }
-            
-            // Remove button
-            const removeBtn = document.createElement('button');
-            removeBtn.className = 'remove-file';
-            removeBtn.innerHTML = '×';
-            removeBtn.title = 'Remove';
-            removeBtn.addEventListener('click', () => {
-                filesToMerge.splice(index, 1);
-                // Reorder the remaining files
-                filesToMerge.forEach((file, i) => {
-                    file.order = i + 1;
-                });
-                updateMergeFileList();
-                mergeButton.disabled = filesToMerge.length < 2;
-            });
-            
-            fileActions.appendChild(removeBtn);
-            fileItem.appendChild(fileName);
-            fileItem.appendChild(fileActions);
-            mergeFileList.appendChild(fileItem);
-        });
+    } catch (error) {
+        console.error('Error loading PDF:', error);
+        alert(getTranslatedText('error-loading'));
+        separateFileInfo.innerHTML = '';
+        separateFileInfo.classList.add('hidden');
+        separateButton.disabled = true;
     }
+});
 
-    mergeButton.addEventListener('click', async () => {
-        try {
-            mergeButton.disabled = true;
-            mergeButton.textContent = getTranslatedText('processing');
-            
-            // Create a new PDF document
-            const mergedPdf = await PDFDocument.create();
-            
-            // Process each file
-            for (const fileObj of filesToMerge) {
-                const fileArrayBuffer = await fileObj.file.arrayBuffer();
-                const pdfDoc = await PDFDocument.load(fileArrayBuffer);
-                const pages = await mergedPdf.copyPages(pdfDoc, pdfDoc.getPageIndices());
-                
-                // Add all pages to the new document
-                pages.forEach(page => {
-                    mergedPdf.addPage(page);
-                });
-            }
-            
-            // Save the merged PDF
-            const mergedPdfBytes = await mergedPdf.save();
-            
-            // Download the merged PDF
-            downloadPDF(mergedPdfBytes, 'merged_document.pdf');
-            
-            mergeButton.textContent = getTranslatedText('merge-button');
-            mergeButton.disabled = false;
-        } catch (error) {
-            console.error('Error merging PDFs:', error);
-            alert(getTranslatedText('error-merging'));
-            mergeButton.textContent = getTranslatedText('merge-button');
-            mergeButton.disabled = false;
-        }
-    });
+// Implement drag and drop for PDF splitting
+const separateDropArea = document.querySelector('#separate .upload-area');
 
-    // ====== SEPARATE PDF FUNCTIONALITY ======
-    const separateFileInput = document.getElementById('separate-file-input');
-    const separateFileInfo = document.getElementById('separate-file-info');
-    const separateButton = document.getElementById('separate-button');
-    const splitMethodSelect = document.getElementById('split-method');
-    const rangeInputs = document.getElementById('range-inputs');
-    const pageRangeInput = document.getElementById('page-range');
+separateDropArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    separateDropArea.classList.add('drag-over');
+});
+
+separateDropArea.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    separateDropArea.classList.remove('drag-over');
+});
+
+separateDropArea.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    separateDropArea.classList.remove('drag-over');
     
-    // Create a container for page previews in separate tab
-    const separatePreviewContainer = document.createElement('div');
-    separatePreviewContainer.id = 'separate-page-previews';
-    separatePreviewContainer.className = 'page-list';
-    separateFileInfo.parentNode.insertBefore(separatePreviewContainer, separateFileInfo.nextSibling);
+    const files = Array.from(e.dataTransfer.files).filter(file => 
+        file.type === 'application/pdf'
+    );
     
-    let pdfToSeparate = null;
-    let pdfPageCount = 0;
-    let separatePdfBytes = null;
-
-    separateFileInput.addEventListener('change', async (e) => {
-        if (e.target.files.length === 0) return;
-        
-        const file = e.target.files[0];
-        if (file.type !== 'application/pdf') {
-            alert(getTranslatedText('select-pdf'));
-            return;
-        }
-        
+    if (files.length > 0) {
         try {
-            separatePreviewContainer.innerHTML = `<div class="loading">${getTranslatedText('loading-previews')}</div>`;
-            
-            const fileArrayBuffer = await file.arrayBuffer();
-            separatePdfBytes = new Uint8Array(fileArrayBuffer);
-            const pdfDoc = await PDFDocument.load(fileArrayBuffer);
-            
+            const file = files[0];
             pdfToSeparate = file;
-            pdfPageCount = pdfDoc.getPageCount();
+            
+            // Read the PDF to get page count
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await PDFDocument.load(arrayBuffer);
+            pdfPageCount = pdf.getPageCount();
             
             // Update UI
             separateFileInfo.innerHTML = `
@@ -516,264 +648,912 @@ document.addEventListener('DOMContentLoaded', function() {
                 ${getTranslatedText('total-pages')}: ${pdfPageCount}
             `;
             
-            // Render PDF previews
-            await renderPDFPages(separatePdfBytes, separatePreviewContainer);
-            
+            separateFileInfo.classList.remove('hidden');
             separateButton.disabled = false;
+            
         } catch (error) {
             console.error('Error loading PDF:', error);
             alert(getTranslatedText('error-loading'));
-            separatePreviewContainer.innerHTML = '';
-        }
-    });
-
-    splitMethodSelect.addEventListener('change', () => {
-        if (splitMethodSelect.value === 'range') {
-            rangeInputs.classList.remove('hidden');
-        } else {
-            rangeInputs.classList.add('hidden');
-        }
-    });
-
-    separateButton.addEventListener('click', async () => {
-        if (!pdfToSeparate) return;
-        
-        try {
+            separateFileInfo.innerHTML = '';
+            separateFileInfo.classList.add('hidden');
             separateButton.disabled = true;
-            separateButton.textContent = getTranslatedText('processing');
+        }
+    }
+});
+
+// Parse page range input
+function parsePageRanges(rangeString, maxPages) {
+    const ranges = [];
+    const parts = rangeString.split(',');
+    
+    for (const part of parts) {
+        part.trim();
+        if (part.includes('-')) {
+            // Handle range like "1-5"
+            const [start, end] = part.split('-').map(n => parseInt(n.trim(), 10));
             
-            const fileArrayBuffer = await pdfToSeparate.arrayBuffer();
-            const pdfDoc = await PDFDocument.load(fileArrayBuffer);
+            if (isNaN(start) || isNaN(end) || start < 1 || end > maxPages || start > end) {
+                continue;
+            }
             
-            if (splitMethodSelect.value === 'all') {
-                // Extract each page as a separate PDF
-                for (let i = 0; i < pdfPageCount; i++) {
-                    const newPdf = await PDFDocument.create();
-                    const [page] = await newPdf.copyPages(pdfDoc, [i]);
-                    newPdf.addPage(page);
-                    
-                    const newPdfBytes = await newPdf.save();
-                    downloadPDF(newPdfBytes, `page_${i + 1}.pdf`);
-                }
-            } else if (splitMethodSelect.value === 'range') {
-                // Extract specific page ranges
-                const rangeText = pageRangeInput.value.trim();
-                if (!rangeText) {
-                    alert(getTranslatedText('valid-range'));
-                    separateButton.disabled = false;
-                    separateButton.textContent = getTranslatedText('split-button');
-                    return;
-                }
-                
-                const pageIndices = parsePageRanges(rangeText, pdfPageCount);
-                if (pageIndices.length === 0) {
-                    alert(getTranslatedText('no-valid-range'));
-                    separateButton.disabled = false;
-                    separateButton.textContent = getTranslatedText('split-button');
-                    return;
-                }
-                
+            // PDF page indices are 0-based, but user input is 1-based
+            ranges.push({ start: start - 1, end: end - 1 });
+        } else {
+            // Handle single page like "3"
+            const pageNum = parseInt(part.trim(), 10);
+            
+            if (isNaN(pageNum) || pageNum < 1 || pageNum > maxPages) {
+                continue;
+            }
+            
+            ranges.push({ start: pageNum - 1, end: pageNum - 1 });
+        }
+    }
+    
+    return ranges;
+}
+
+// Split PDF button functionality
+separateButton.addEventListener('click', async () => {
+    if (!pdfToSeparate) {
+        alert(getTranslatedText('select-pdf'));
+        return;
+    }
+    
+    try {
+        separateButton.disabled = true;
+        separateButton.textContent = getTranslatedText('processing');
+        
+        const arrayBuffer = await pdfToSeparate.arrayBuffer();
+        const pdf = await PDFDocument.load(arrayBuffer);
+        const splitMethod = splitMethodSelect.value;
+        
+        // Handle different split methods
+        if (splitMethod === 'all') {
+            // Extract all pages as separate PDFs
+            for (let i = 0; i < pdfPageCount; i++) {
                 const newPdf = await PDFDocument.create();
-                const pages = await newPdf.copyPages(pdfDoc, pageIndices);
+                const [page] = await newPdf.copyPages(pdf, [i]);
+                newPdf.addPage(page);
                 
+                const newPdfBytes = await newPdf.save();
+                
+                // Create download link
+                const blob = new Blob([newPdfBytes], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `page_${i + 1}.pdf`;
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+        } else if (splitMethod === 'range') {
+            // Extract specific page ranges
+            const rangeValue = pageRangeInput.value.trim();
+            if (!rangeValue) {
+                alert(getTranslatedText('valid-range'));
+                separateButton.textContent = getTranslatedText('split-button');
+                separateButton.disabled = false;
+                return;
+            }
+            
+            const ranges = parsePageRanges(rangeValue, pdfPageCount);
+            if (ranges.length === 0) {
+                alert(getTranslatedText('no-valid-range'));
+                separateButton.textContent = getTranslatedText('split-button');
+                separateButton.disabled = false;
+                return;
+            }
+            
+            // Create PDF for each range
+            for (let i = 0; i < ranges.length; i++) {
+                const range = ranges[i];
+                const newPdf = await PDFDocument.create();
+                
+                // Get pages in this range
+                const pageIndices = [];
+                for (let j = range.start; j <= range.end; j++) {
+                    pageIndices.push(j);
+                }
+                
+                const pages = await newPdf.copyPages(pdf, pageIndices);
+                
+                // Add pages to new PDF
                 pages.forEach(page => {
                     newPdf.addPage(page);
                 });
                 
                 const newPdfBytes = await newPdf.save();
-                downloadPDF(newPdfBytes, `extracted_pages.pdf`);
-            }
-            
-            separateButton.disabled = false;
-            separateButton.textContent = getTranslatedText('split-button');
-        } catch (error) {
-            console.error('Error separating PDF:', error);
-            alert(getTranslatedText('error-splitting'));
-            separateButton.disabled = false;
-            separateButton.textContent = getTranslatedText('split-button');
-        }
-    });
-
-    function parsePageRanges(rangeText, maxPages) {
-        const pageIndices = [];
-        const parts = rangeText.split(',');
-        
-        for (const part of parts) {
-            const trimmedPart = part.trim();
-            
-            if (trimmedPart.includes('-')) {
-                // Range of pages (e.g., "1-3")
-                const [start, end] = trimmedPart.split('-').map(num => parseInt(num.trim()));
                 
-                if (isNaN(start) || isNaN(end) || start < 1 || end > maxPages || start > end) {
-                    continue;
-                }
-                
-                for (let i = start; i <= end; i++) {
-                    pageIndices.push(i - 1); // Convert to 0-based index
-                }
-            } else {
-                // Single page (e.g., "5")
-                const pageNum = parseInt(trimmedPart);
-                
-                if (isNaN(pageNum) || pageNum < 1 || pageNum > maxPages) {
-                    continue;
-                }
-                
-                pageIndices.push(pageNum - 1); // Convert to 0-based index
+                // Create download link
+                const blob = new Blob([newPdfBytes], { type: 'application/pdf' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `pages_${range.start + 1}-${range.end + 1}.pdf`;
+                a.click();
+                URL.revokeObjectURL(url);
             }
         }
         
-        // Remove duplicates and sort
-        return [...new Set(pageIndices)].sort((a, b) => a - b);
+        separateButton.textContent = getTranslatedText('split-button');
+        separateButton.disabled = false;
+        
+    } catch (error) {
+        console.error('Error splitting PDF:', error);
+        alert(getTranslatedText('error-splitting'));
+        separateButton.textContent = getTranslatedText('split-button');
+        separateButton.disabled = false;
     }
+});
 
-    // ====== REARRANGE PAGES FUNCTIONALITY ======
-    const rearrangeFileInput = document.getElementById('rearrange-file-input');
-    const pagePreviews = document.getElementById('page-previews');
-    const rearrangeButton = document.getElementById('rearrange-button');
+// ====== REARRANGE PAGES FUNCTIONALITY ======
+const rearrangeFileInput = document.getElementById('rearrange-file-input');
+const pagePreviews = document.getElementById('page-previews');
+const rearrangeButton = document.getElementById('rearrange-button');
+
+let pdfToRearrange = null;
+let rearrangedPages = [];
+
+// Drag and drop functionality for page rearrangement
+let draggedItem = null;
+
+function handleDragStart(e) {
+    draggedItem = this;
+    this.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', this.innerHTML);
+}
+
+function handleDragEnd(e) {
+    this.classList.remove('dragging');
+    document.querySelectorAll('.page-item').forEach(item => {
+        item.classList.remove('drag-over');
+    });
+}
+
+function handleDragOver(e) {
+    e.preventDefault();
+    return false;
+}
+
+function handleDragEnter(e) {
+    this.classList.add('drag-over');
+}
+
+function handleDragLeave(e) {
+    this.classList.remove('drag-over');
+}
+
+function handleDrop(e) {
+    e.stopPropagation();
+    e.preventDefault();
     
-    let pdfToRearrange = null;
-    let rearrangePdfBytes = null;
-    let rearrangedPages = [];
+    if (draggedItem !== this) {
+        // Get positions
+        const allItems = Array.from(document.querySelectorAll('#page-previews .page-item'));
+        const fromIndex = allItems.indexOf(draggedItem);
+        const toIndex = allItems.indexOf(this);
+        
+        // Update rearrangedPages array
+        const movedPage = rearrangedPages[fromIndex];
+        rearrangedPages.splice(fromIndex, 1);
+        rearrangedPages.splice(toIndex, 0, movedPage);
+        
+        // Update DOM
+        if (fromIndex < toIndex) {
+            this.parentNode.insertBefore(draggedItem, this.nextSibling);
+        } else {
+            this.parentNode.insertBefore(draggedItem, this);
+        }
+        
+        // Update page numbers
+        updatePageNumbers();
+    }
+    
+    this.classList.remove('drag-over');
+    return false;
+}
 
-    rearrangeFileInput.addEventListener('change', async (e) => {
-        if (e.target.files.length === 0) return;
+// Update page numbers after rearrangement
+function updatePageNumbers() {
+    const pageItems = document.querySelectorAll('#page-previews .page-item');
+    pageItems.forEach((item, index) => {
+        const pageNumber = item.querySelector('.page-number');
+        pageNumber.textContent = `${getTranslatedText('page-text')} ${index + 1}`;
+    });
+}
+
+// Handle file selection for rearrangement
+rearrangeFileInput.addEventListener('change', async (e) => {
+    if (e.target.files.length === 0) return;
+    
+    try {
+        pagePreviews.innerHTML = `<div class="loading">${getTranslatedText('loading-previews')}</div>`;
         
         const file = e.target.files[0];
-        if (file.type !== 'application/pdf') {
-            alert(getTranslatedText('select-pdf'));
-            return;
-        }
+        pdfToRearrange = file;
         
+        // Read the PDF
+        const arrayBuffer = await file.arrayBuffer();
+        
+        // Render page previews
+        const pageCount = await renderPDFPages(arrayBuffer, pagePreviews, { draggable: true });
+        
+        // Initialize rearrangedPages array with sequential indices
+        rearrangedPages = Array.from({ length: pageCount }, (_, i) => i);
+        
+        rearrangeButton.disabled = false;
+        
+    } catch (error) {
+        console.error('Error loading PDF:', error);
+        alert(getTranslatedText('error-loading'));
+        pagePreviews.innerHTML = '';
+        rearrangeButton.disabled = true;
+    }
+});
+
+// Implement drag and drop for PDF rearrangement
+const rearrangeDropArea = document.querySelector('#rearrange .upload-area');
+
+rearrangeDropArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    rearrangeDropArea.classList.add('drag-over');
+});
+
+rearrangeDropArea.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    rearrangeDropArea.classList.remove('drag-over');
+});
+
+rearrangeDropArea.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    rearrangeDropArea.classList.remove('drag-over');
+    
+    const files = Array.from(e.dataTransfer.files).filter(file => 
+        file.type === 'application/pdf'
+    );
+    
+    if (files.length > 0) {
         try {
             pagePreviews.innerHTML = `<div class="loading">${getTranslatedText('loading-previews')}</div>`;
             
-            const fileArrayBuffer = await file.arrayBuffer();
-            rearrangePdfBytes = new Uint8Array(fileArrayBuffer);
-            const pdfDoc = await PDFDocument.load(fileArrayBuffer);
-            pdfToRearrange = pdfDoc;
+            const file = files[0];
+            pdfToRearrange = file;
             
-            const pageCount = pdfDoc.getPageCount();
+            // Read the PDF
+            const arrayBuffer = await file.arrayBuffer();
             
-            // Reset rearranged pages array
+            // Render page previews
+            const pageCount = await renderPDFPages(arrayBuffer, pagePreviews, { draggable: true });
+            
+            // Initialize rearrangedPages array with sequential indices
             rearrangedPages = Array.from({ length: pageCount }, (_, i) => i);
             
-            // Render actual PDF page previews
-            await renderPDFPages(rearrangePdfBytes, pagePreviews, { draggable: true });
-            
             rearrangeButton.disabled = false;
+            
         } catch (error) {
-            console.error('Error loading PDF for rearrangement:', error);
+            console.error('Error loading PDF:', error);
             alert(getTranslatedText('error-loading'));
             pagePreviews.innerHTML = '';
+            rearrangeButton.disabled = true;
         }
-    });
-
-    // Drag and drop functionality for page rearrangement
-    let draggedItem = null;
-
-    function handleDragStart(e) {
-        this.classList.add('dragging');
-        draggedItem = this;
-        e.dataTransfer.effectAllowed = 'move';
-        e.dataTransfer.setData('text/plain', this.dataset.pageIndex);
     }
+});
 
-    function handleDragEnd(e) {
-        this.classList.remove('dragging');
-    }
-
-    function handleDragOver(e) {
-        e.preventDefault();
-        e.dataTransfer.dropEffect = 'move';
-    }
-
-    function handleDragEnter(e) {
-        e.preventDefault();
-        this.classList.add('drag-over');
-    }
-
-    function handleDragLeave(e) {
-        this.classList.remove('drag-over');
-    }
-
-    function handleDrop(e) {
-        e.preventDefault();
-        this.classList.remove('drag-over');
-
-        if (draggedItem === this) return;
-
-        const fromIndex = parseInt(draggedItem.dataset.pageIndex);
-        const toIndex = parseInt(this.dataset.pageIndex);
-
-        // Update the rearranged pages array
-        const [movedPage] = rearrangedPages.splice(fromIndex, 1);
-        rearrangedPages.splice(toIndex, 0, movedPage);
-
-        // Reorder DOM elements
-        if (fromIndex < toIndex) {
-            pagePreviews.insertBefore(draggedItem, this.nextSibling);
-        } else {
-            pagePreviews.insertBefore(draggedItem, this);
+// Save rearranged PDF
+rearrangeButton.addEventListener('click', async () => {
+    if (!pdfToRearrange || rearrangedPages.length === 0) return;
+    
+    try {
+        rearrangeButton.disabled = true;
+        rearrangeButton.textContent = getTranslatedText('processing');
+        
+        const arrayBuffer = await pdfToRearrange.arrayBuffer();
+        const pdf = await PDFDocument.load(arrayBuffer);
+        
+        // Create a new PDF with rearranged pages
+        const newPdf = await PDFDocument.create();
+        
+        // Copy pages in the new order
+        for (const pageIndex of rearrangedPages) {
+            const [page] = await newPdf.copyPages(pdf, [pageIndex]);
+            newPdf.addPage(page);
         }
+        
+        const newPdfBytes = await newPdf.save();
+        
+        // Create download link
+        const blob = new Blob([newPdfBytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'rearranged.pdf';
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        rearrangeButton.textContent = getTranslatedText('rearrange-button');
+        rearrangeButton.disabled = false;
+        
+    } catch (error) {
+        console.error('Error rearranging PDF:', error);
+        alert(getTranslatedText('error-rearranging'));
+        rearrangeButton.textContent = getTranslatedText('rearrange-button');
+        rearrangeButton.disabled = false;
+    }
+});
 
-        // Update data-page-index attributes for all page items
-        const pageItems = Array.from(pagePreviews.querySelectorAll('.page-item'));
-        pageItems.forEach((item, index) => {
-            item.dataset.pageIndex = index;
+// ====== IMAGES TO PDF FUNCTIONALITY ======
+const imagesFileInput = document.getElementById('images-file-input');
+const imagePreviews = document.getElementById('image-previews');
+const createPdfButton = document.getElementById('create-pdf-button');
+const pageSizeSelect = document.getElementById('page-size');
+const pageOrientationSelect = document.getElementById('page-orientation');
 
-            // Update page number text
-            const pageNumberElement = item.querySelector('.page-number');
-            if (pageNumberElement) {
-                pageNumberElement.textContent = `${getTranslatedText('page-text')} ${index + 1}`;
+let imagesToConvert = [];
+
+// Handle file selection for images
+imagesFileInput.addEventListener('change', async (e) => {
+    const newFiles = Array.from(e.target.files).filter(file => 
+        file.type.startsWith('image/')
+    );
+    
+    if (newFiles.length === 0) return;
+    
+    // Add new files to our array
+    imagesToConvert = [...imagesToConvert, ...newFiles];
+    
+    // Update UI
+    updateImagePreviews();
+    
+    // Enable button if images are selected
+    if (imagesToConvert.length > 0) {
+        createPdfButton.disabled = false;
+    }
+});
+
+// Update image previews
+async function updateImagePreviews() {
+    imagePreviews.innerHTML = imagesToConvert.length === 0 ? 
+        `<div class="no-files">${getTranslatedText('no-images')}</div>` : 
+        `<div class="loading">${getTranslatedText('loading-images')}</div>`;
+    
+    if (imagesToConvert.length === 0) {
+        return;
+    }
+    
+    // Clear the container
+    imagePreviews.innerHTML = '';
+    
+    // Add each image preview
+    for (let i = 0; i < imagesToConvert.length; i++) {
+        const image = imagesToConvert[i];
+        
+        // Create image preview element
+        const imageItem = document.createElement('div');
+        imageItem.className = 'page-item';
+        
+        // Create image element
+        const img = document.createElement('img');
+        img.src = URL.createObjectURL(image);
+        
+        // Create image number label
+        const imageNumber = document.createElement('div');
+        imageNumber.className = 'page-number';
+        imageNumber.textContent = `${getTranslatedText('image-text')} ${i + 1}`;
+        
+        // Create remove button
+        const removeButton = document.createElement('button');
+        removeButton.className = 'remove-file';
+        removeButton.innerHTML = '&times;';
+        removeButton.addEventListener('click', () => {
+            URL.revokeObjectURL(img.src);
+            imagesToConvert.splice(i, 1);
+            updateImagePreviews();
+            if (imagesToConvert.length === 0) {
+                createPdfButton.disabled = true;
             }
         });
+        
+        imageItem.appendChild(img);
+        imageItem.appendChild(imageNumber);
+        imageItem.appendChild(removeButton);
+        imagePreviews.appendChild(imageItem);
+        
+        // Make items sortable
+        imageItem.draggable = true;
+        imageItem.addEventListener('dragstart', handleDragStart);
+        imageItem.addEventListener('dragend', handleDragEnd);
+        imageItem.addEventListener('dragover', handleDragOver);
+        imageItem.addEventListener('dragenter', handleDragEnter);
+        imageItem.addEventListener('dragleave', handleDragLeave);
+        imageItem.addEventListener('drop', handleDrop);
     }
+}
 
-    rearrangeButton.addEventListener('click', async () => {
-        if (!pdfToRearrange) return;
+// Implement drag and drop for image uploads
+const imagesDropArea = document.querySelector('#images .upload-area');
 
-        try {
-            rearrangeButton.disabled = true;
-            rearrangeButton.textContent = getTranslatedText('processing');
+imagesDropArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    imagesDropArea.classList.add('drag-over');
+});
 
-            // Create a new PDF with rearranged pages
-            const newPdf = await PDFDocument.create();
+imagesDropArea.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    imagesDropArea.classList.remove('drag-over');
+});
 
-            // Copy pages in the new order
-            for (const pageIndex of rearrangedPages) {
-                const [page] = await newPdf.copyPages(pdfToRearrange, [pageIndex]);
-                newPdf.addPage(page);
+imagesDropArea.addEventListener('drop', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    imagesDropArea.classList.remove('drag-over');
+    
+    const droppedFiles = Array.from(e.dataTransfer.files).filter(file => 
+        file.type.startsWith('image/')
+    );
+    
+    if (droppedFiles.length > 0) {
+        imagesToConvert = [...imagesToConvert, ...droppedFiles];
+        updateImagePreviews();
+        createPdfButton.disabled = false;
+    }
+});
+
+// Create PDF from images
+// Create PDF from images
+createPdfButton.addEventListener('click', async () => {
+    if (imagesToConvert.length === 0) return;
+    
+    try {
+        createPdfButton.disabled = true;
+        createPdfButton.textContent = getTranslatedText('processing');
+        
+        // Create a new PDF document
+        const pdfDoc = await PDFDocument.create();
+        
+        // Get PDF page size
+        const pageSize = pageSizeSelect.value;
+        const orientation = pageOrientationSelect.value;
+        
+        // Get page dimensions
+        let pageWidth, pageHeight;
+        
+        if (pageSize === 'A4') {
+            if (orientation === 'portrait') {
+                pageWidth = 595;
+                pageHeight = 842;
+            } else {
+                pageWidth = 842;
+                pageHeight = 595;
             }
-
-// Save and download the rearranged PDF
-const newPdfBytes = await newPdf.save();
-downloadPDF(newPdfBytes, 'rearranged_document.pdf');
-
-rearrangeButton.disabled = false;
-rearrangeButton.textContent = getTranslatedText('rearrange-button');
-} catch (error) {
-console.error('Error rearranging PDF:', error);
-alert(getTranslatedText('error-rearranging'));
-rearrangeButton.disabled = false;
-rearrangeButton.textContent = getTranslatedText('rearrange-button');
-}
+        } else if (pageSize === 'Letter') {
+            if (orientation === 'portrait') {
+                pageWidth = 612;
+                pageHeight = 792;
+            } else {
+                pageWidth = 792;
+                pageHeight = 612;
+            }
+        }
+        
+        // Process each image
+        for (const image of imagesToConvert) {
+            try {
+                // Create a canvas to safely process the image
+                const img = new Image();
+                const imageUrl = URL.createObjectURL(image);
+                
+                // Wait for the image to load
+                await new Promise((resolve, reject) => {
+                    img.onload = resolve;
+                    img.onerror = reject;
+                    img.src = imageUrl;
+                });
+                
+                // Create canvas and draw the image
+                const canvas = document.createElement('canvas');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0);
+                
+                // Get PNG data from canvas
+                const pngBytes = await new Promise(resolve => {
+                    canvas.toBlob(blob => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result);
+                        reader.readAsArrayBuffer(blob);
+                    }, 'image/png');
+                });
+                
+                // Clean up
+                URL.revokeObjectURL(imageUrl);
+                
+                // Embed image in PDF
+                const embeddedImage = await pdfDoc.embedPng(pngBytes);
+                
+                // Get image dimensions
+                const imgWidth = embeddedImage.width;
+                const imgHeight = embeddedImage.height;
+                
+                // Create a page
+                let page;
+                
+                if (pageSize === 'fit') {
+                    // Create a page that fits the image
+                    const imgAspectRatio = imgWidth / imgHeight;
+                    
+                    if (orientation === 'auto') {
+                        // Choose orientation based on image aspect ratio
+                        if (imgAspectRatio > 1) {
+                            // Landscape
+                            pageWidth = 842;
+                            pageHeight = pageWidth / imgAspectRatio;
+                        } else {
+                            // Portrait
+                            pageHeight = 842;
+                            pageWidth = pageHeight * imgAspectRatio;
+                        }
+                    } else if (orientation === 'landscape') {
+                        pageWidth = 842;
+                        pageHeight = pageWidth / imgAspectRatio;
+                    } else {
+                        // Portrait
+                        pageHeight = 842;
+                        pageWidth = pageHeight * imgAspectRatio;
+                    }
+                    
+                    page = pdfDoc.addPage([pageWidth, pageHeight]);
+                    
+                    // Draw image to fill the page
+                    page.drawImage(embeddedImage, {
+                        x: 0,
+                        y: 0,
+                        width: pageWidth,
+                        height: pageHeight
+                    });
+                } else {
+                    // Use standard page size
+                    page = pdfDoc.addPage([pageWidth, pageHeight]);
+                    
+                    // Calculate the dimensions to fit the image on the page with margins
+                    const margin = 40;
+                    const maxWidth = pageWidth - 2 * margin;
+                    const maxHeight = pageHeight - 2 * margin;
+                    
+                    // Scale image to fit within margins while maintaining aspect ratio
+                    let scaledWidth, scaledHeight;
+                    const imgAspectRatio = imgWidth / imgHeight;
+                    const pageAspectRatio = maxWidth / maxHeight;
+                    
+                    if (imgAspectRatio > pageAspectRatio) {
+                        // Image is wider than page ratio
+                        scaledWidth = maxWidth;
+                        scaledHeight = scaledWidth / imgAspectRatio;
+                    } else {
+                        // Image is taller than page ratio
+                        scaledHeight = maxHeight;
+                        scaledWidth = scaledHeight * imgAspectRatio;
+                    }
+                    
+                    // Center the image on the page
+                    const x = margin + (maxWidth - scaledWidth) / 2;
+                    const y = margin + (maxHeight - scaledHeight) / 2;
+                    
+                    // Draw the image
+                    page.drawImage(embeddedImage, {
+                        x,
+                        y,
+                        width: scaledWidth,
+                        height: scaledHeight
+                    });
+                }
+            } catch (imgError) {
+                console.error('Error processing image:', imgError);
+                // Continue with next image instead of failing the entire process
+                continue;
+            }
+        }
+        
+        // Save the PDF
+        const pdfBytes = await pdfDoc.save();
+        
+        // Create download link
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'images_to_pdf.pdf';
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        createPdfButton.textContent = getTranslatedText('images-button');
+        createPdfButton.disabled = false;
+        
+    } catch (error) {
+        console.error('Error converting images to PDF:', error);
+        alert(getTranslatedText('error-image-conversion'));
+        createPdfButton.textContent = getTranslatedText('images-button');
+        createPdfButton.disabled = false;
+    }
 });
 
-// Helper function to download PDF
-function downloadPDF(bytes, filename) {
-const blob = new Blob([bytes], { type: 'application/pdf' });
-const url = URL.createObjectURL(blob);
+// ====== N-UP PAGES FUNCTIONALITY (CONTINUED) ======
+const nupFileInput = document.getElementById('nup-file-input');
+const nupFileInfo = document.getElementById('nup-file-info');
+const nupPreviews = document.getElementById('nup-previews');
+const nupButton = document.getElementById('nup-button');
+const nupLayoutSelect = document.getElementById('nup-layout');
+const nupDirectionSelect = document.getElementById('nup-direction');
+const nupPageSizeSelect = document.getElementById('nup-page-size');
+const nupOrientationSelect = document.getElementById('nup-orientation');
 
-const link = document.createElement('a');
-link.href = url;
-link.download = filename;
-link.click();
+let pdfForNup = null;
+let nupPageCount = 0;
+let nupPages = [];
 
-setTimeout(() => {
-URL.revokeObjectURL(url);
-}, 100);
-}
+// Handle file selection for N-Up
+nupFileInput.addEventListener('change', async (e) => {
+    if (e.target.files.length === 0) return;
+    
+    try {
+        nupPreviews.innerHTML = `<div class="loading">${getTranslatedText('loading-previews')}</div>`;
+        
+        const file = e.target.files[0];
+        pdfForNup = file;
+        
+        // Read the PDF
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await PDFDocument.load(arrayBuffer);
+        nupPageCount = pdf.getPageCount();
+        
+        // Update UI
+        nupFileInfo.innerHTML = `
+            <strong>${file.name}</strong><br>
+            ${getTranslatedText('total-pages')}: ${nupPageCount}
+        `;
+        
+        nupFileInfo.classList.remove('hidden');
+        
+        // Render page previews
+        await renderPDFPages(arrayBuffer, nupPreviews, { selectable: true });
+        
+        // Enable the button
+        nupButton.disabled = false;
+        
+    } catch (error) {
+        console.error('Error loading PDF:', error);
+        alert(getTranslatedText('error-loading'));
+        nupPreviews.innerHTML = '';
+        nupFileInfo.innerHTML = '';
+        nupFileInfo.classList.add('hidden');
+        nupButton.disabled = true;
+    }
+});
+
+// Implement drag and drop for N-Up
+const nupDropArea = document.querySelector('#nup .upload-area');
+
+nupDropArea.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    nupDropArea.classList.add('drag-over');
+});
+
+nupDropArea.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    nupDropArea.classList.remove('drag-over');
+});
+
+nupDropArea.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    nupDropArea.classList.remove('drag-over');
+    
+    const files = Array.from(e.dataTransfer.files).filter(file => 
+        file.type === 'application/pdf'
+    );
+    
+    if (files.length > 0) {
+        try {
+            nupPreviews.innerHTML = `<div class="loading">${getTranslatedText('loading-previews')}</div>`;
+            
+            const file = files[0];
+            pdfForNup = file;
+            
+            // Read the PDF
+            const arrayBuffer = await file.arrayBuffer();
+            const pdf = await PDFDocument.load(arrayBuffer);
+            nupPageCount = pdf.getPageCount();
+            
+            // Update UI
+            nupFileInfo.innerHTML = `
+                <strong>${file.name}</strong><br>
+                ${getTranslatedText('total-pages')}: ${nupPageCount}
+            `;
+            
+            nupFileInfo.classList.remove('hidden');
+            
+            // Render page previews
+            await renderPDFPages(arrayBuffer, nupPreviews, { selectable: true });
+            
+            // Enable the button
+            nupButton.disabled = false;
+            
+        } catch (error) {
+            console.error('Error loading PDF:', error);
+            alert(getTranslatedText('error-loading'));
+            nupPreviews.innerHTML = '';
+            nupFileInfo.innerHTML = '';
+            nupFileInfo.classList.add('hidden');
+            nupButton.disabled = true;
+        }
+    }
+});
+
+// Create N-Up PDF
+nupButton.addEventListener('click', async () => {
+    if (!pdfForNup) {
+        alert(getTranslatedText('select-pdf'));
+        return;
+    }
+    
+    try {
+        nupButton.disabled = true;
+        nupButton.textContent = getTranslatedText('processing');
+        
+        // Get selected pages
+        const selectedCheckboxes = document.querySelectorAll('#nup-previews .page-select:checked');
+        if (selectedCheckboxes.length === 0) {
+            alert(getTranslatedText('select-pdf'));
+            nupButton.textContent = getTranslatedText('nup-button');
+            nupButton.disabled = false;
+            return;
+        }
+        
+        const selectedPages = Array.from(selectedCheckboxes).map(checkbox => 
+            parseInt(checkbox.dataset.pageIndex)
+        );
+        
+        // Get layout settings
+        const layoutType = nupLayoutSelect.value;
+        const direction = nupDirectionSelect.value;
+        const pageSize = nupPageSizeSelect.value;
+        const orientation = nupOrientationSelect.value;
+        
+        // Load source PDF
+        const arrayBuffer = await pdfForNup.arrayBuffer();
+        const sourcePdf = await PDFDocument.load(arrayBuffer);
+        
+        // Create a new PDF document for the N-Up layout
+        const nupPdf = await PDFDocument.create();
+        
+        // Determine number of columns and rows based on layout type
+        let cols, rows;
+        switch (layoutType) {
+            case '2x1':
+                cols = 2;
+                rows = 1;
+                break;
+            case '1x2':
+                cols = 1;
+                rows = 2;
+                break;
+            case '2x2':
+                cols = 2;
+                rows = 2;
+                break;
+            default:
+                cols = 2;
+                rows = 1;
+        }
+        
+        // Calculate page dimensions for the new PDF
+        let pageWidth, pageHeight;
+        if (pageSize === 'A4') {
+            if (orientation === 'portrait') {
+                pageWidth = 595;
+                pageHeight = 842;
+            } else {
+                pageWidth = 842;
+                pageHeight = 595;
+            }
+        } else if (pageSize === 'Letter') {
+            if (orientation === 'portrait') {
+                pageWidth = 612;
+                pageHeight = 792;
+            } else {
+                pageWidth = 792;
+                pageHeight = 612;
+            }
+        }
+        
+        // Calculate dimensions for each sub-page
+        const margin = 10; // Margin between pages
+        const subPageWidth = (pageWidth - margin * (cols + 1)) / cols;
+        const subPageHeight = (pageHeight - margin * (rows + 1)) / rows;
+        
+        // Process pages in chunks based on the layout
+        const pagesPerSheet = cols * rows;
+        const totalSheets = Math.ceil(selectedPages.length / pagesPerSheet);
+        
+        for (let sheetIndex = 0; sheetIndex < totalSheets; sheetIndex++) {
+            // Create a new page for this sheet
+            const page = nupPdf.addPage([pageWidth, pageHeight]);
+            
+            // For each position on the sheet
+            for (let posIndex = 0; posIndex < pagesPerSheet; posIndex++) {
+                // Calculate the page index based on sheet index and position
+                const pageIndex = sheetIndex * pagesPerSheet + posIndex;
+                
+                // Break if we've processed all selected pages
+                if (pageIndex >= selectedPages.length) break;
+                
+                // Get the selected page from the source PDF
+                const sourcePage = sourcePdf.getPage(selectedPages[pageIndex]);
+                
+                // Copy the page to the new PDF
+                const [embeddedPage] = await nupPdf.embedPdf(
+                    await sourcePdf.save(),
+                    [selectedPages[pageIndex]]
+                );
+                
+                // Calculate the position for this page on the sheet
+                let row, col;
+                if (direction === 'ltr') {
+                    // Left to right, top to bottom
+                    row = Math.floor(posIndex / cols);
+                    col = posIndex % cols;
+                } else {
+                    // Right to left, top to bottom
+                    row = Math.floor(posIndex / cols);
+                    col = cols - 1 - (posIndex % cols);
+                }
+                
+                const x = margin + col * (subPageWidth + margin);
+                const y = pageHeight - margin - (row + 1) * subPageHeight - row * margin;
+                
+                // Draw the page at the calculated position
+                page.drawPage(embeddedPage, {
+                    x,
+                    y,
+                    width: subPageWidth,
+                    height: subPageHeight,
+                    keepAspectRatio: true
+                });
+            }
+        }
+        
+        // Save the N-Up PDF
+        const nupPdfBytes = await nupPdf.save();
+        
+        // Create download link
+        const blob = new Blob([nupPdfBytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'nup_layout.pdf';
+        a.click();
+        URL.revokeObjectURL(url);
+        
+        nupButton.textContent = getTranslatedText('nup-button');
+        nupButton.disabled = false;
+        
+    } catch (error) {
+        console.error('Error creating N-Up PDF:', error);
+        alert(getTranslatedText('error-nup'));
+        nupButton.textContent = getTranslatedText('nup-button');
+        nupButton.disabled = false;
+    }
+});
+
+// Initialize language on page load
 initializeLanguage();
-});
+})

@@ -26,11 +26,13 @@
         
         <div class="tabs">
             <button class="tab-button active" data-tab="merge" data-lang-key="merge-tab">Merge PDFs</button>
+            <button class="tab-button" data-tab="nup" data-lang-key="nup-tab">N-Up Pages</button>
             <button class="tab-button" data-tab="separate" data-lang-key="separate-tab">Split PDF</button>
             <button class="tab-button" data-tab="rearrange" data-lang-key="rearrange-tab">Rearrange Pages</button>
-        </div>
-        
-        <!-- Merge PDFs Section -->
+            <button class="tab-button" data-tab="images" data-lang-key="images-tab">Images to PDF</button>
+            </div>
+
+            <!-- Merge PDFs Section -->
         <div class="tab-content active" id="merge">
             <h2 data-lang-key="merge-title">Merge PDFs</h2>
             <div class="upload-area">
@@ -40,9 +42,9 @@
             </div>
             <div id="merge-file-list" class="file-list"></div>
             <button id="merge-button" class="action-button" disabled data-lang-key="merge-button">Merge PDFs</button>
-        </div>
+            </div>
         
-        <!-- Separate PDF Section -->
+            <!-- Separate PDF Section -->
         <div class="tab-content" id="separate">
             <h2 data-lang-key="split-title">Split PDF</h2>
             <div class="upload-area">
@@ -66,7 +68,7 @@
             </div>
             <button id="separate-button" class="action-button" disabled data-lang-key="split-button">Split PDF</button>
         </div>
-        
+
         <!-- Rearrange Pages Section -->
         <div class="tab-content" id="rearrange">
             <h2 data-lang-key="rearrange-title">Rearrange Pages</h2>
@@ -81,6 +83,82 @@
             <div class="action-buttons">
                 <button id="rearrange-button" class="action-button" disabled data-lang-key="rearrange-button">Save Rearranged PDF</button>
             </div>
+        </div>
+
+        <!-- Images to PDF Section -->
+        <div class="tab-content" id="images">
+            <h2 data-lang-key="images-title">Images to PDF</h2>
+            <div class="upload-area">
+                <input type="file" id="images-file-input" accept="image/*" multiple>
+                <label for="images-file-input" class="file-input-label" data-lang-key="images-select">Select Images</label>
+                <p data-lang-key="images-drag">Or drag and drop image files here</p>
+            </div>
+            <div id="image-previews" class="page-list"></div>
+            <div class="pdf-options">
+                <div class="input-group">
+                    <label for="page-size" data-lang-key="page-size">Page Size:</label>
+                    <select id="page-size">
+                        <option value="A4" data-lang-key="size-a4">A4</option>
+                        <option value="Letter" data-lang-key="size-letter">Letter</option>
+                        <option value="fit" data-lang-key="size-fit">Fit to Image</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="page-orientation" data-lang-key="page-orientation">Orientation:</label>
+                    <select id="page-orientation">
+                        <option value="portrait" data-lang-key="orientation-portrait">Portrait</option>
+                        <option value="landscape" data-lang-key="orientation-landscape">Landscape</option>
+                        <option value="auto" data-lang-key="orientation-auto">Auto (Based on Image)</option>
+                    </select>
+                </div>
+            </div>
+            <button id="create-pdf-button" class="action-button" disabled data-lang-key="images-button">Create PDF</button>
+        </div>
+        
+        <!-- Merge Multiple Pages Into One Section -->
+        <div class="tab-content" id="nup">
+            <h2 data-lang-key="nup-title">N-Up Pages</h2>
+            <div class="upload-area">
+                <input type="file" id="nup-file-input" accept="application/pdf">
+                <label for="nup-file-input" class="file-input-label" data-lang-key="nup-select">Select PDF</label>
+                <p data-lang-key="nup-drag">Or drag and drop a PDF file here</p>
+            </div>
+            <div id="nup-file-info" class="file-info"></div>
+            <div id="nup-preview-container">
+                <div id="nup-previews" class="page-list"></div>
+            </div>
+            <div class="nup-options">
+                <div class="input-group">
+                    <label for="nup-layout" data-lang-key="nup-layout">Layout:</label>
+                    <select id="nup-layout">
+                        <option value="2x1" data-lang-key="nup-2x1">2-Up Horizontal (2×1)</option>
+                        <option value="1x2" data-lang-key="nup-1x2">2-Up Vertical (1×2)</option>
+                        <option value="2x2" data-lang-key="nup-2x2">4-Up (2×2)</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="nup-direction" data-lang-key="nup-direction">Page Order:</label>
+                    <select id="nup-direction">
+                        <option value="ltr" data-lang-key="nup-ltr">Left to Right</option>
+                        <option value="rtl" data-lang-key="nup-rtl">Right to Left</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="nup-page-size" data-lang-key="page-size">Page Size:</label>
+                    <select id="nup-page-size">
+                        <option value="A4" data-lang-key="size-a4">A4</option>
+                        <option value="Letter" data-lang-key="size-letter">Letter</option>
+                    </select>
+                </div>
+                <div class="input-group">
+                    <label for="nup-orientation" data-lang-key="page-orientation">Orientation:</label>
+                    <select id="nup-orientation">
+                        <option value="portrait" data-lang-key="orientation-portrait">Portrait</option>
+                        <option value="landscape" data-lang-key="orientation-landscape">Landscape</option>
+                    </select>
+                </div>
+            </div>
+            <button id="nup-button" class="action-button" disabled data-lang-key="nup-button">Create N-Up PDF</button>
         </div>
     </div>
     
