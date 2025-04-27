@@ -23,13 +23,22 @@
         </div>
         
         <h1 data-lang-key="editor-title">PDF Editor</h1>
-        
-        <div class="tabs">
-            <button class="tab-button active" data-tab="merge" data-lang-key="merge-tab">Merge PDFs</button>
-            <button class="tab-button" data-tab="nup" data-lang-key="nup-tab">N-Up Pages</button>
-            <button class="tab-button" data-tab="separate" data-lang-key="separate-tab">Split PDF</button>
-            <button class="tab-button" data-tab="rearrange" data-lang-key="rearrange-tab">Rearrange Pages</button>
-            <button class="tab-button" data-tab="images" data-lang-key="images-tab">Images to PDF</button>
+            <!-- tabs container -->
+        <div class="tabs-container">
+            <div class="tabs">
+              <button class="tab-button active" data-tab="merge" data-lang-key="merge-tab">Merge PDFs</button>
+              <button class="tab-button" data-tab="nup" data-lang-key="nup-tab">N-Up Pages</button>
+              <button class="tab-button" data-tab="separate" data-lang-key="separate-tab">Split PDF</button>
+              <button class="tab-button" data-tab="rearrange" data-lang-key="rearrange-tab">Rearrange Pages</button>
+              <button class="tab-button" data-tab="images" data-lang-key="images-tab">Images to PDF</button>
+            </div>
+            <div class="tabs-dots">
+              <div class="tab-dot active"></div>
+              <div class="tab-dot"></div>
+              <div class="tab-dot"></div>
+              <div class="tab-dot"></div>
+              <div class="tab-dot"></div>
+            </div>
             </div>
 
             <!-- Merge PDFs Section -->
@@ -57,11 +66,11 @@
                 <div class="input-group">
                     <label for="split-method" data-lang-key="split-method">Split Method:</label>
                     <select id="split-method">
-                        <option value="all" data-lang-key="split-all">Extract All Pages</option>
                         <option value="range" data-lang-key="split-range">Extract Page Range</option>
+                        <option value="all" data-lang-key="split-all">Extract All Pages</option>
                     </select>
                 </div>
-                <div id="range-inputs" class="input-group hidden">
+                <div id="range-inputs" class="input-group">
                     <label for="page-range" data-lang-key="page-range">Page Range:</label>
                     <input type="text" id="page-range" placeholder="e.g., 1-3, 5, 7-9" data-lang-key-placeholder="page-range-placeholder">
                 </div>
@@ -156,6 +165,10 @@
                         <option value="portrait" data-lang-key="orientation-portrait">Portrait</option>
                         <option value="landscape" data-lang-key="orientation-landscape">Landscape</option>
                     </select>
+                </div>
+                <div class="nup-final-preview-container">
+                    <h3 data-lang-key="nup-final-preview">Final Layout Preview</h3>
+                    <div id="nup-final-preview" class="nup-final-preview"></div>
                 </div>
             </div>
             <button id="nup-button" class="action-button" disabled data-lang-key="nup-button">Create N-Up PDF</button>

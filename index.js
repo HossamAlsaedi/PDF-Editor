@@ -12,6 +12,8 @@ document.addEventListener('DOMContentLoaded', function() {
             'merge-select': 'Select PDFs to Merge',
             'merge-drag': 'Or drag and drop PDF files here',
             'merge-button': 'Merge PDFs',
+            'reorder-file': 'reorder-file',
+            'remove-file': 'remove-file',
             'processing': 'Processing...',
             'split-title': 'Split PDF',
             'split-select': 'Select PDF to Split',
@@ -77,6 +79,8 @@ document.addEventListener('DOMContentLoaded', function() {
             'merge-select': 'حدد ملفات PDF للدمج',
             'merge-drag': 'أو اسحب وأفلت ملفات PDF هنا',
             'merge-button': 'دمج ملفات PDF',
+            'reorder-file': 'إعادة ترتيب',
+            'remove-file': "حذف الملف",
             'processing': 'جار المعالجة...',
             'split-title': 'تقسيم PDF',
             'split-select': 'حدد ملف PDF للتقسيم',
@@ -419,6 +423,73 @@ document.addEventListener('DOMContentLoaded', function() {
         return numPages;
     }
 
+    // change active dots ----------------
+function test() {
+
+    const tabsContainer = document.querySelector('.tabs');
+    const tabButtons = Array.from(document.querySelectorAll('.tab-button'));
+    const tabDots = Array.from(document.querySelectorAll('.tab-dot'));
+    let activeIndex = 0; // Track which tab is active
+    
+    // Update active dot based on visible tabs and active tab
+    function updateActiveDot() {
+      // Find the active tab index
+      activeIndex = tabButtons.findIndex(tab => tab.classList.contains('active'));
+      
+      // Update dots to match active tab
+      tabDots.forEach((dot, index) => {
+        dot.classList.toggle('active', index === activeIndex);
+      });
+      
+    }
+    
+    // Enable clicking on dots to scroll to corresponding tab and make that tab active
+    tabDots.forEach((dot, index) => {
+      dot.addEventListener('click', () => {
+        // Remove active class from all tabs
+        tabButtons.forEach(tab => tab.classList.remove('active'));
+        
+        // Add active class to the tab corresponding to the clicked dot
+        tabButtons[index].classList.add('active');
+        
+        // Scroll to the tab
+        tabsContainer.scrollTo({
+          left: tabButtons[index].offsetLeft - (tabsContainer.offsetWidth / 2) + (tabButtons[index].offsetWidth / 2),
+          behavior: 'smooth'
+        });
+        
+        // Update dots (though this happens in updateActiveDot too)
+        updateActiveDot();
+        
+      });
+    });
+    
+    // Make tabs update the dots when clicked
+    tabButtons.forEach((tab, index) => {
+      tab.addEventListener('click', () => {
+        // Remove active class from all tabs
+        tabButtons.forEach(t => t.classList.remove('active'));
+        
+        // Add active class to clicked tab
+        tab.classList.add('active');
+        
+        // Update dots
+        updateActiveDot();
+      });
+    });
+    
+    // Update on scroll and resize
+    tabsContainer.addEventListener('scroll', updateActiveDot);
+    window.addEventListener('resize', updateActiveDot);
+    
+    // Initial update
+    updateActiveDot();
+}
+
+test()
+
+
+    
 // ====== MERGE PDFs FUNCTIONALITY ======
 const mergeFileInput = document.getElementById('merge-file-input');
 const mergeFileList = document.getElementById('merge-file-list');
@@ -459,24 +530,130 @@ function updateMergeFileList() {
         const fileItem = document.createElement('div');
         fileItem.className = 'file-item';
         
-        const fileName = document.createElement('span');
-        fileName.textContent = file.name;
+        // Create file type indicator
+        const fileTypeIndicator = document.createElement('div');
+        fileTypeIndicator.className = 'file-type-indicator';
+        fileTypeIndicator.textContent = 'PDF';
         
+        // Create the file name container
+        const fileName = document.createElement('div');
+        fileName.className = 'file-name';
+        fileName.appendChild(fileTypeIndicator);
+        
+        // Create text node for file name
+        const fileNameText = document.createElement('span');
+        fileNameText.textContent = file.name;
+        fileName.appendChild(fileNameText);
+        
+        // Create actions container
+        const fileActions = document.createElement('div');
+        fileActions.className = 'file-actions';
+        
+        // Create move/reorder button for drag functionality
+        const moveButton = document.createElement('button');
+        moveButton.className = 'file-move';
+        moveButton.setAttribute('data-tooltip', getTranslatedText('reorder-file'));
+        moveButton.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"></line><line x1="8" y1="12" x2="21" y2="12"></line><line x1="8" y1="18" x2="21" y2="18"></line><line x1="3" y1="6" x2="3.01" y2="6"></line><line x1="3" y1="12" x2="3.01" y2="12"></line><line x1="3" y1="18" x2="3.01" y2="18"></line></svg>';
+        
+        // Create remove button
         const removeButton = document.createElement('button');
         removeButton.className = 'remove-file';
-        removeButton.innerHTML = '&times;';
-        removeButton.addEventListener('click', () => {
-            filesToMerge.splice(index, 1);
-            updateMergeFileList();
-            if (filesToMerge.length === 0) {
-                mergeButton.disabled = true;
+        removeButton.setAttribute('data-tooltip', getTranslatedText('remove-file'));
+        removeButton.textContent = '×'; 
+
+removeButton.addEventListener('click', () => {
+    filesToMerge.splice(index, 1);
+    updateMergeFileList();
+    if (filesToMerge.length === 0) {
+        mergeButton.disabled = true;
+    }
+});
+        
+        // Add buttons to actions container
+        fileActions.appendChild(moveButton);
+        fileActions.appendChild(removeButton);
+        
+        // Add all elements to file item
+        fileItem.appendChild(fileName);
+        fileItem.appendChild(fileActions);
+        mergeFileList.appendChild(fileItem);
+    });
+    
+    // Initialize drag functionality for reordering
+    initDragReorder();
+}
+
+// Function to initialize drag reordering
+function initDragReorder() {
+    const fileItems = document.querySelectorAll('#merge-file-list .file-item');
+    let draggedItem = null;
+    
+    fileItems.forEach(item => {
+        const moveHandle = item.querySelector('.file-move');
+        
+        moveHandle.addEventListener('mousedown', function() {
+            draggedItem = item;
+            item.classList.add('dragging');
+            
+            // Add event listeners for drag movement and completion
+            document.addEventListener('mousemove', dragMove);
+            document.addEventListener('mouseup', dragEnd);
+        });
+    });
+    
+    function dragMove(e) {
+        if (!draggedItem) return;
+        
+        const fileList = document.getElementById('merge-file-list');
+        const fileItems = Array.from(fileList.querySelectorAll('.file-item:not(.dragging)'));
+        
+        // Find the item we're dragging over
+        const afterElement = fileItems.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = e.clientY - box.top - box.height / 2;
+            
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+        
+        if (afterElement) {
+            fileList.insertBefore(draggedItem, afterElement);
+        } else {
+            fileList.appendChild(draggedItem);
+        }
+        
+        // Update the filesToMerge array to match the new order
+        updateFilesArray();
+    }
+    
+    function dragEnd() {
+        if (!draggedItem) return;
+        
+        draggedItem.classList.remove('dragging');
+        draggedItem = null;
+        
+        // Remove event listeners
+        document.removeEventListener('mousemove', dragMove);
+        document.removeEventListener('mouseup', dragEnd);
+    }
+    
+    function updateFilesArray() {
+        const newFilesOrder = [];
+        const fileItems = document.querySelectorAll('#merge-file-list .file-item');
+        
+        fileItems.forEach((item, index) => {
+            const fileName = item.querySelector('.file-name span').textContent;
+            const fileIndex = filesToMerge.findIndex(file => file.name === fileName);
+            if (fileIndex !== -1) {
+                newFilesOrder.push(filesToMerge[fileIndex]);
             }
         });
         
-        fileItem.appendChild(fileName);
-        fileItem.appendChild(removeButton);
-        mergeFileList.appendChild(fileItem);
-    });
+        filesToMerge = newFilesOrder;
+    }
 }
 
 // Implement drag and drop for PDF merging
@@ -1017,38 +1194,43 @@ imagesFileInput.addEventListener('change', async (e) => {
 
 // Update image previews
 async function updateImagePreviews() {
-    imagePreviews.innerHTML = imagesToConvert.length === 0 ? 
+    // Update image previews async function updateImagePreviews() {
+        imagePreviews.innerHTML = imagesToConvert.length === 0 ? 
         `<div class="no-files">${getTranslatedText('no-images')}</div>` : 
         `<div class="loading">${getTranslatedText('loading-images')}</div>`;
-    
+        
     if (imagesToConvert.length === 0) {
         return;
     }
-    
+        
     // Clear the container
     imagePreviews.innerHTML = '';
-    
+        
     // Add each image preview
     for (let i = 0; i < imagesToConvert.length; i++) {
         const image = imagesToConvert[i];
-        
+                
         // Create image preview element
         const imageItem = document.createElement('div');
-        imageItem.className = 'page-item';
-        
+        imageItem.className = 'image-item'; // Changed from page-item to image-item
+                
         // Create image element
         const img = document.createElement('img');
         img.src = URL.createObjectURL(image);
-        
+                
         // Create image number label
         const imageNumber = document.createElement('div');
-        imageNumber.className = 'page-number';
+        imageNumber.className = 'image-number';
         imageNumber.textContent = `${getTranslatedText('image-text')} ${i + 1}`;
-        
+                
+        // Create actions container
+        const imageActions = document.createElement('div');
+        imageActions.className = 'image-actions';
+                
         // Create remove button
         const removeButton = document.createElement('button');
-        removeButton.className = 'remove-file';
-        removeButton.innerHTML = '&times;';
+        removeButton.className = 'remove-image'; // Changed to remove-image class for proper styling
+        removeButton.setAttribute('title', getTranslatedText('remove-image'));
         removeButton.addEventListener('click', () => {
             URL.revokeObjectURL(img.src);
             imagesToConvert.splice(i, 1);
@@ -1057,20 +1239,14 @@ async function updateImagePreviews() {
                 createPdfButton.disabled = true;
             }
         });
-        
+                
+                
+        imageActions.appendChild(removeButton);
         imageItem.appendChild(img);
         imageItem.appendChild(imageNumber);
-        imageItem.appendChild(removeButton);
+        imageItem.appendChild(imageActions);
         imagePreviews.appendChild(imageItem);
-        
-        // Make items sortable
-        imageItem.draggable = true;
-        imageItem.addEventListener('dragstart', handleDragStart);
-        imageItem.addEventListener('dragend', handleDragEnd);
-        imageItem.addEventListener('dragover', handleDragOver);
-        imageItem.addEventListener('dragenter', handleDragEnter);
-        imageItem.addEventListener('dragleave', handleDragLeave);
-        imageItem.addEventListener('drop', handleDrop);
+                
     }
 }
 
@@ -1105,7 +1281,6 @@ imagesDropArea.addEventListener('drop', (e) => {
     }
 });
 
-// Create PDF from images
 // Create PDF from images
 createPdfButton.addEventListener('click', async () => {
     if (imagesToConvert.length === 0) return;
@@ -1293,6 +1468,9 @@ const nupLayoutSelect = document.getElementById('nup-layout');
 const nupDirectionSelect = document.getElementById('nup-direction');
 const nupPageSizeSelect = document.getElementById('nup-page-size');
 const nupOrientationSelect = document.getElementById('nup-orientation');
+const nupDropArea = document.querySelector('#nup .upload-area');
+const nupFinalPreviewContainer = document.querySelector('.nup-final-preview-container');
+const nupFinalPreview = document.getElementById('nup-final-preview');
 
 let pdfForNup = null;
 let nupPageCount = 0;
@@ -1304,6 +1482,7 @@ nupFileInput.addEventListener('change', async (e) => {
     
     try {
         nupPreviews.innerHTML = `<div class="loading">${getTranslatedText('loading-previews')}</div>`;
+        nupFinalPreviewContainer.style.display = 'none'; // Hide preview until pages are loaded
         
         const file = e.target.files[0];
         pdfForNup = file;
@@ -1324,6 +1503,10 @@ nupFileInput.addEventListener('change', async (e) => {
         // Render page previews
         await renderPDFPages(arrayBuffer, nupPreviews, { selectable: true });
         
+        // Set up listeners and update preview
+        setupPageSelectionListeners();
+        updateNupPreview();
+        
         // Enable the button
         nupButton.disabled = false;
         
@@ -1334,12 +1517,11 @@ nupFileInput.addEventListener('change', async (e) => {
         nupFileInfo.innerHTML = '';
         nupFileInfo.classList.add('hidden');
         nupButton.disabled = true;
+        nupFinalPreviewContainer.style.display = 'none';
     }
 });
 
 // Implement drag and drop for N-Up
-const nupDropArea = document.querySelector('#nup .upload-area');
-
 nupDropArea.addEventListener('dragover', (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -1364,6 +1546,7 @@ nupDropArea.addEventListener('drop', async (e) => {
     if (files.length > 0) {
         try {
             nupPreviews.innerHTML = `<div class="loading">${getTranslatedText('loading-previews')}</div>`;
+            nupFinalPreviewContainer.style.display = 'none'; // Hide preview until pages are loaded
             
             const file = files[0];
             pdfForNup = file;
@@ -1384,6 +1567,10 @@ nupDropArea.addEventListener('drop', async (e) => {
             // Render page previews
             await renderPDFPages(arrayBuffer, nupPreviews, { selectable: true });
             
+            // Set up listeners and update preview
+            setupPageSelectionListeners();
+            updateNupPreview();
+            
             // Enable the button
             nupButton.disabled = false;
             
@@ -1394,9 +1581,159 @@ nupDropArea.addEventListener('drop', async (e) => {
             nupFileInfo.innerHTML = '';
             nupFileInfo.classList.add('hidden');
             nupButton.disabled = true;
+            nupFinalPreviewContainer.style.display = 'none';
         }
     }
 });
+
+// Function to update the N-Up preview
+function updateNupPreview() {
+    if (!pdfForNup || !nupPageCount) return;
+    
+    // Get layout settings
+    const layoutType = nupLayoutSelect.value;
+    const direction = nupDirectionSelect.value;
+    const pageSize = nupPageSizeSelect.value;
+    const orientation = nupOrientationSelect.value;
+    
+    // Get selected pages
+    const selectedCheckboxes = document.querySelectorAll('#nup-previews .page-select:checked');
+    const selectedPages = Array.from(selectedCheckboxes).map(checkbox => 
+        parseInt(checkbox.dataset.pageIndex)
+    );
+    
+    if (selectedPages.length === 0) {
+        nupFinalPreviewContainer.style.display = 'none';
+        return;
+    }
+    
+    // Show the preview container
+    nupFinalPreviewContainer.style.display = 'block';
+    
+    // Clear previous preview
+    nupFinalPreview.innerHTML = '';
+    
+    // Determine number of columns and rows based on layout type
+    let cols, rows;
+    switch (layoutType) {
+        case '2x1':
+            cols = 2;
+            rows = 1;
+            break;
+        case '1x2':
+            cols = 1;
+            rows = 2;
+            break;
+        case '2x2':
+            cols = 2;
+            rows = 2;
+            break;
+        default:
+            cols = 2;
+            rows = 1;
+    }
+    
+    // Set aspect ratio based on page size and orientation
+    let aspectRatio;
+    if (pageSize === 'A4') {
+        aspectRatio = orientation === 'portrait' ? 595/842 : 842/595;
+    } else { // Letter
+        aspectRatio = orientation === 'portrait' ? 612/792 : 792/612;
+    }
+    
+    // Calculate dimensions for the preview page
+    const previewWidth = 300; // Fixed width for preview
+    const previewHeight = previewWidth / aspectRatio;
+    
+    // Process pages in chunks based on the layout
+    const pagesPerSheet = cols * rows;
+    const totalSheets = Math.ceil(selectedPages.length / pagesPerSheet);
+    
+    // Create preview for each sheet
+    for (let sheetIndex = 0; sheetIndex < totalSheets; sheetIndex++) {
+        // Create container for this sheet preview
+        const sheetPreview = document.createElement('div');
+        sheetPreview.className = 'page-preview';
+        sheetPreview.style.width = `${previewWidth}px`;
+        sheetPreview.style.height = `${previewHeight}px`;
+        
+        // Add sheet number
+        const sheetNumber = document.createElement('div');
+        sheetNumber.className = 'sheet-number';
+        sheetNumber.textContent = `Sheet ${sheetIndex + 1}`;
+        sheetNumber.style.position = 'absolute';
+        sheetNumber.style.top = '5px';
+        sheetNumber.style.left = '5px';
+        sheetNumber.style.fontSize = '12px';
+        sheetNumber.style.color = '#999';
+        sheetPreview.appendChild(sheetNumber);
+        
+        // For each position on the sheet
+        for (let posIndex = 0; posIndex < pagesPerSheet; posIndex++) {
+            // Calculate the page index based on sheet index and position
+            const pageIndex = sheetIndex * pagesPerSheet + posIndex;
+            
+            // Break if we've processed all selected pages
+            if (pageIndex >= selectedPages.length) break;
+            
+            // Calculate the position for this page on the sheet
+            let row, col;
+            if (direction === 'ltr') {
+                // Left to right, top to bottom
+                row = Math.floor(posIndex / cols);
+                col = posIndex % cols;
+            } else {
+                // Right to left, top to bottom
+                row = Math.floor(posIndex / cols);
+                col = cols - 1 - (posIndex % cols);
+            }
+            
+            // Calculate the subpage dimensions
+            const margin = 10;
+            const subPageWidth = (previewWidth - margin * (cols + 1)) / cols;
+            const subPageHeight = (previewHeight - margin * (rows + 1)) / rows;
+            
+            const x = margin + col * (subPageWidth + margin);
+            const y = margin + row * (subPageHeight + margin);
+            
+            // Create subpage element
+            const subpage = document.createElement('div');
+            subpage.className = 'subpage';
+            subpage.style.left = `${x}px`;
+            subpage.style.top = `${y}px`;
+            subpage.style.width = `${subPageWidth}px`;
+            subpage.style.height = `${subPageHeight}px`;
+            subpage.textContent = `Page ${selectedPages[pageIndex] + 1}`;
+            
+            sheetPreview.appendChild(subpage);
+        }
+        
+        nupFinalPreview.appendChild(sheetPreview);
+    }
+}
+
+// Function to set up page selection listeners
+function setupPageSelectionListeners() {
+    // Find all page selection checkboxes
+    const pageCheckboxes = document.querySelectorAll('#nup-previews .page-select');
+    
+    // Add event listener to each checkbox
+    pageCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', updateNupPreview);
+    });
+    
+    // Add event listener to "Select All" checkbox if it exists
+    const selectAllCheckbox = document.querySelector('#nup-select-all');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.addEventListener('change', updateNupPreview);
+    }
+}
+
+// Add event listeners for layout option changes
+nupLayoutSelect.addEventListener('change', updateNupPreview);
+nupDirectionSelect.addEventListener('change', updateNupPreview);
+nupPageSizeSelect.addEventListener('change', updateNupPreview);
+nupOrientationSelect.addEventListener('change', updateNupPreview);
 
 // Create N-Up PDF
 nupButton.addEventListener('click', async () => {
