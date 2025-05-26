@@ -284,6 +284,7 @@ input[type="file"] {
   background-color: var(--light-bg);
   box-shadow: var(--shadow-sm);
   border: 1px solid var(--light-gray);
+  overflow: auto;
 }
 
 .file-list:empty {
